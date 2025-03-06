@@ -30,25 +30,30 @@ def extract_headlines(contents):
 
     soup_results = BeautifulSoup(contents.text, 'html.parser')
 
-    soup_results.select('[class*=__headline-text]')
+    # ***__headline-text is used across many news organizations to denote headlines on the front page
+    soup_results = soup_results.select('[class*=__headline-text]')
+    print(soup_results)
     headlines = [element.get_text(separator=" ", strip=True) for element in soup_results]
+    print(headlines)
     return headlines
 
-def word_frequency(list):
-    word_frequencies = Counter(list)
-    # sort the list by most commonly used words
-    freq_list = word_frequencies.most_common(10)
-    # filter out words that are not contained in nltk stopwords and custom stopwords
+def word_frequency(headlines):
+    words = []
+    for headline in headlines:
+        words.extend(headline.split())
+    word_frequencies = Counter(words)
+    # Filter out stop words
     filtered_frequencies = {word: freq for word, freq in word_frequencies.items() if word.lower() not in stop_words}
-    # orders the words by frequency in decending order
-    prdered_freq_list = sorted(filtered_frequencies.items(), key=lambda x: x[1], reverse=True)
-    return prdered_freq_list
+    ordered_freq_list = sorted(filtered_frequencies.items(), key=lambda x: x[1], reverse=True)
+    return ordered_freq_list
 
 def get_words(list):
-    all_headlines = Counter({})
+    all_headlines = []
     for website in list: 
+        print("Processing Website: " + website)
         headlines = extract_headlines(website)
-        all_headlines += word_frequency(headlines)
+        freq = word_frequency(headlines)
+        all_headlines = all_headlines + freq
 
     return all_headlines
 
@@ -57,18 +62,15 @@ def get_words(list):
 # catagorize them into right/left leaning bias
 left_leaning = ["https://www.cnn.com",
 "https://www.msnbc.com",
-"https://www.washingtonpost.com",
 "https://www.huffpost.com",
-"https://www.vox.com"]
+"https://www.vox.com"] 
 
 
 right_leaning = ["https://www.foxnews.com",
 "https://www.breitbart.com",
 "https://www.dailycaller.com",
-"https://www.nationalreview.com",
-"https://www.washingtontimes.com",
 "https://www.oann.com"]
 
 
 
-print(get_words(left_leaning))
+print(get_words(right_leaning))
